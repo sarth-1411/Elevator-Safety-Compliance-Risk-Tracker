@@ -142,17 +142,6 @@ The flow never writes to `ActionStatus`, `AssignedTo`, or `ActionNotes`, so a re
 
 - **Queue screen:** filter by status, borough, and action; search by device; open overdue and due-soon counts; list sorted most urgent first
 - **Detail screen:** read-only facts on the left; reviewer actions on the right (set status, assign to me, add notes, mark resolved)
-
----
-
-## Screenshots
-
-| | |
-|---|---|
-| ![Architecture](images/architecture.png) | ![Power BI overview](images/powerbi_overview.png) |
-| ![Power Automate flow](images/flow.png) | ![SharePoint queue](images/sharepoint_queue.png) |
-| ![Power Apps queue](images/powerapps_queue.png) | ![Power Apps detail](images/powerapps_detail.png) |
-
 ---
 
 ## Challenges worked through
