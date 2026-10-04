@@ -1,0 +1,181 @@
+- recHeader:
+    Control: Rectangle@2.3.0
+    Properties:
+      Fill: =RGBA(24, 95, 165, 1)
+      X: =0
+      Y: =0
+      Width: =Parent.Width
+      Height: =70
+- lblTitle:
+    Control: Label@2.5.1
+    Properties:
+      Text: ="Elevator Compliance Queue"
+      Color: =RGBA(255, 255, 255, 1)
+      Size: =22
+      FontWeight: =FontWeight.Semibold
+      X: =24
+      Y: =0
+      Width: =600
+      Height: =70
+- ddStatus:
+    Control: Classic/DropDown@2.3.1
+    Properties:
+      Items: =["All","Overdue","Due Soon"]
+      Default: ="All"
+      Fill: =RGBA(255, 255, 255, 1)
+      BorderColor: =RGBA(211, 209, 199, 1)
+      ChevronBackground: =RGBA(255, 255, 255, 1)
+      ChevronFill: =RGBA(95, 94, 90, 1)
+      Color: =RGBA(44, 44, 42, 1)
+      X: =24
+      Y: =90
+      Width: =220
+      Height: =40
+- ddBorough:
+    Control: Classic/DropDown@2.3.1
+    Properties:
+      Items: =["All","Manhattan","Brooklyn","Queens","Bronx","Staten Island"]
+      Default: ="All"
+      Fill: =RGBA(255, 255, 255, 1)
+      BorderColor: =RGBA(211, 209, 199, 1)
+      ChevronBackground: =RGBA(255, 255, 255, 1)
+      ChevronFill: =RGBA(95, 94, 90, 1)
+      Color: =RGBA(44, 44, 42, 1)
+      X: =260
+      Y: =90
+      Width: =220
+      Height: =40
+- ddAction:
+    Control: Classic/DropDown@2.3.1
+    Properties:
+      Items: =["Open","All","New","In Progress","Scheduled","Resolved"]
+      Default: ="Open"
+      Fill: =RGBA(255, 255, 255, 1)
+      BorderColor: =RGBA(211, 209, 199, 1)
+      ChevronBackground: =RGBA(255, 255, 255, 1)
+      ChevronFill: =RGBA(95, 94, 90, 1)
+      Color: =RGBA(44, 44, 42, 1)
+      X: =496
+      Y: =90
+      Width: =220
+      Height: =40
+- txtSearch:
+    Control: Classic/TextInput@2.3.2
+    Properties:
+      Default: =""
+      HintText: ="Search device number"
+      BorderColor: =RGBA(211, 209, 199, 1)
+      X: =732
+      Y: =90
+      Width: =260
+      Height: =40
+- lblOverdue:
+    Control: Label@2.5.1
+    Properties:
+      Text: |-
+        ="Overdue (open): " & CountRows(Filter(QueueCompliance, ComplianceStatus.Value = "Overdue" && ActionStatus.Value <> "Resolved"))
+      Fill: =RGBA(252, 235, 235, 1)
+      Color: =RGBA(121, 31, 31, 1)
+      FontWeight: =FontWeight.Semibold
+      Size: =14
+      PaddingLeft: =12
+      X: =24
+      Y: =145
+      Width: =300
+      Height: =44
+- lblDueSoon:
+    Control: Label@2.5.1
+    Properties:
+      Text: |-
+        ="Due soon (open): " & CountRows(Filter(QueueCompliance, ComplianceStatus.Value = "Due Soon" && ActionStatus.Value <> "Resolved"))
+      Fill: =RGBA(250, 238, 218, 1)
+      Color: =RGBA(99, 56, 6, 1)
+      FontWeight: =FontWeight.Semibold
+      Size: =14
+      PaddingLeft: =12
+      X: =340
+      Y: =145
+      Width: =300
+      Height: =44
+- galQueue:
+    Control: Gallery@2.15.0
+    Variant: Vertical
+    Properties:
+      Items: |-
+        =Sort(
+            Filter(
+                QueueCompliance,
+                (ddStatus.Selected.Value = "All" || ComplianceStatus.Value = ddStatus.Selected.Value) &&
+                (ddBorough.Selected.Value = "All" || Borough.Value = ddBorough.Selected.Value) &&
+                (ddAction.Selected.Value = "All" ||
+                    (ddAction.Selected.Value = "Open" && ActionStatus.Value <> "Resolved") ||
+                    ActionStatus.Value = ddAction.Selected.Value) &&
+                (IsBlank(txtSearch.Text) || StartsWith(Title, txtSearch.Text))
+            ),
+            DaysUntilDue,
+            SortOrder.Ascending
+        )
+      OnSelect: =Navigate(DetailScreen, ScreenTransition.Cover)
+      TemplateFill: =RGBA(255, 255, 255, 1)
+      BorderColor: =RGBA(211, 209, 199, 1)
+      BorderThickness: =1
+      TemplateSize: =96
+      TemplatePadding: =0
+      X: =24
+      Y: =205
+      Width: =Parent.Width - 48
+      Height: =Parent.Height - 225
+    Children:
+      - lblDevice:
+          Control: Label@2.5.1
+          Properties:
+            Text: =ThisItem.Title
+            Color: =RGBA(44, 44, 42, 1)
+            FontWeight: =FontWeight.Semibold
+            Size: =16
+            X: =16
+            Y: =8
+            Width: =400
+            Height: =28
+      - lblLocation:
+          Control: Label@2.5.1
+          Properties:
+            Text: =ThisItem.Borough.Value & " · BIN " & ThisItem.BIN
+            Color: =RGBA(95, 94, 90, 1)
+            Size: =13
+            X: =16
+            Y: =36
+            Width: =500
+            Height: =24
+      - lblDue:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              ="Due " & Text(ThisItem.NextDueDate, "mmm d, yyyy") & "  (" & ThisItem.DaysUntilDue & " days)  ·  Action: " & ThisItem.ActionStatus.Value
+            Color: =RGBA(95, 94, 90, 1)
+            Size: =13
+            X: =16
+            Y: =60
+            Width: =700
+            Height: =24
+      - lblStatusPill:
+          Control: Label@2.5.1
+          Properties:
+            Text: =ThisItem.ComplianceStatus.Value
+            Align: =Align.Center
+            Fill: =If(ThisItem.ComplianceStatus.Value = "Overdue", RGBA(252, 235, 235, 1), RGBA(250, 238, 218, 1))
+            Color: =If(ThisItem.ComplianceStatus.Value = "Overdue", RGBA(121, 31, 31, 1), RGBA(99, 56, 6, 1))
+            FontWeight: =FontWeight.Semibold
+            Size: =13
+            X: =Parent.TemplateWidth - 150
+            Y: =32
+            Width: =120
+            Height: =30
+      - sepRow:
+          Control: Rectangle@2.3.0
+          Properties:
+            Fill: =RGBA(211, 209, 199, 1)
+            X: =0
+            Y: =Parent.TemplateHeight - 1
+            Width: =Parent.TemplateWidth
+            Height: =1

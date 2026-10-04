@@ -1,0 +1,192 @@
+- recHeader2:
+    Control: Rectangle@2.3.0
+    Properties:
+      Fill: =RGBA(24, 95, 165, 1)
+      X: =0
+      Y: =0
+      Width: =Parent.Width
+      Height: =70
+- icoBack:
+    Control: Classic/Icon@2.5.0
+    Properties:
+      Icon: =Icon.ArrowLeft
+      Color: =RGBA(255, 255, 255, 1)
+      OnSelect: =Back()
+      X: =16
+      Y: =15
+      Width: =40
+      Height: =40
+- lblDetailTitle:
+    Control: Label@2.5.1
+    Properties:
+      Text: ="Device " & galQueue.Selected.Title
+      Color: =RGBA(255, 255, 255, 1)
+      Size: =22
+      FontWeight: =FontWeight.Semibold
+      X: =70
+      Y: =0
+      Width: =600
+      Height: =70
+- lblFactsHeader:
+    Control: Label@2.5.1
+    Properties:
+      Text: ="Facts (updated by the flow)"
+      Color: =RGBA(95, 94, 90, 1)
+      Size: =13
+      X: =24
+      Y: =90
+      Width: =500
+      Height: =28
+- lblFacts:
+    Control: Label@2.5.1
+    Properties:
+      Text: |-
+        ="Borough: " & galQueue.Selected.Borough.Value & Char(10) &
+        "BIN: " & galQueue.Selected.BIN & Char(10) &
+        "Status: " & galQueue.Selected.ComplianceStatus.Value & Char(10) &
+        "Next due: " & Text(galQueue.Selected.NextDueDate, "mmm d, yyyy") & Char(10) &
+        "Days until due: " & galQueue.Selected.DaysUntilDue & Char(10) &
+        "Open violations: " & galQueue.Selected.OpenViolations & Char(10) &
+        "Last synced: " & Text(galQueue.Selected.LastSyncedOn, "mmm d, yyyy h:mm AM/PM")
+      Fill: =RGBA(255, 255, 255, 1)
+      Color: =RGBA(44, 44, 42, 1)
+      Size: =15
+      PaddingLeft: =16
+      PaddingTop: =12
+      VerticalAlign: =VerticalAlign.Top
+      X: =24
+      Y: =120
+      Width: =560
+      Height: =260
+- lblActionHeader:
+    Control: Label@2.5.1
+    Properties:
+      Text: ="Your action"
+      Color: =RGBA(95, 94, 90, 1)
+      Size: =13
+      X: =640
+      Y: =90
+      Width: =400
+      Height: =28
+- lblActionStatus:
+    Control: Label@2.5.1
+    Properties:
+      Text: ="Action status"
+      Size: =13
+      X: =640
+      Y: =120
+      Width: =400
+      Height: =24
+- ddActionStatus:
+    Control: Classic/DropDown@2.3.1
+    Properties:
+      Items: =["New","In Progress","Scheduled","Resolved"]
+      Default: =galQueue.Selected.ActionStatus.Value
+      Fill: =RGBA(255, 255, 255, 1)
+      BorderColor: =RGBA(211, 209, 199, 1)
+      ChevronBackground: =RGBA(255, 255, 255, 1)
+      ChevronFill: =RGBA(95, 94, 90, 1)
+      Color: =RGBA(44, 44, 42, 1)
+      X: =640
+      Y: =146
+      Width: =400
+      Height: =40
+- lblAssigned:
+    Control: Label@2.5.1
+    Properties:
+      Text: |-
+        ="Assigned to: " & If(IsBlank(galQueue.Selected.AssignedTo), "Unassigned", galQueue.Selected.AssignedTo.DisplayName)
+      Size: =13
+      X: =640
+      Y: =200
+      Width: =400
+      Height: =28
+- btnAssignMe:
+    Control: Classic/Button@2.2.0
+    Properties:
+      Text: ="Assign to me"
+      Fill: =RGBA(255, 255, 255, 1)
+      Color: =RGBA(44, 44, 42, 1)
+      BorderColor: =RGBA(211, 209, 199, 1)
+      BorderThickness: =1
+      OnSelect: |-
+        =Patch(
+            QueueCompliance,
+            galQueue.Selected,
+            {
+                AssignedTo: {
+                    '@odata.type': "#Microsoft.Azure.Connectors.SharePoint.SPListExpandedUser",
+                    Claims: "i:0#.f|membership|" & Lower(User().Email),
+                    DisplayName: User().FullName,
+                    Email: User().Email,
+                    Department: "",
+                    JobTitle: "",
+                    Picture: ""
+                }
+            }
+        );
+        Notify("Assigned to you", NotificationType.Success)
+      X: =640
+      Y: =232
+      Width: =180
+      Height: =40
+- lblNotes:
+    Control: Label@2.5.1
+    Properties:
+      Text: ="Action notes"
+      Size: =13
+      X: =640
+      Y: =286
+      Width: =400
+      Height: =24
+- txtNotes:
+    Control: Classic/TextInput@2.3.2
+    Properties:
+      Default: =galQueue.Selected.ActionNotes
+      Mode: =TextMode.MultiLine
+      HintText: ="Inspection company booked for Oct 6"
+      BorderColor: =RGBA(211, 209, 199, 1)
+      X: =640
+      Y: =312
+      Width: =400
+      Height: =110
+- btnSave:
+    Control: Classic/Button@2.2.0
+    Properties:
+      Text: ="Save"
+      Fill: =RGBA(255, 255, 255, 1)
+      Color: =RGBA(44, 44, 42, 1)
+      BorderColor: =RGBA(211, 209, 199, 1)
+      BorderThickness: =1
+      OnSelect: |-
+        =Patch(
+            QueueCompliance,
+            galQueue.Selected,
+            {
+                ActionStatus: {Value: ddActionStatus.Selected.Value},
+                ActionNotes: txtNotes.Text
+            }
+        );
+        If(
+            IsEmpty(Errors(QueueCompliance)),
+            Notify("Saved", NotificationType.Success); Back(),
+            Notify("Save failed: " & First(Errors(QueueCompliance)).Message, NotificationType.Error)
+        )
+      X: =640
+      Y: =440
+      Width: =190
+      Height: =44
+- btnResolve:
+    Control: Classic/Button@2.2.0
+    Properties:
+      Text: ="Mark resolved"
+      Fill: =RGBA(59, 109, 17, 1)
+      Color: =RGBA(255, 255, 255, 1)
+      OnSelect: |-
+        =Patch(QueueCompliance, galQueue.Selected, {ActionStatus: {Value: "Resolved"}});
+        Notify("Marked resolved", NotificationType.Success);
+        Back()
+      X: =850
+      Y: =440
+      Width: =190
+      Height: =44
