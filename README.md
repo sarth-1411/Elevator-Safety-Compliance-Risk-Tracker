@@ -190,6 +190,4 @@ The flow never writes to `ActionStatus`, `AssignedTo`, or `ActionNotes`, so a re
 6. Build the `FlagComplianceRisk` flow and run it once to populate the queue.
 7. Create a blank canvas app, add the SharePoint list as a data source, and paste the YAML from `powerapps/`.
 
----
 
-*Portfolio project built on public NYC Open Data. Not affiliated with any employer.*
